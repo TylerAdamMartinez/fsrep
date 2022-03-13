@@ -15,9 +15,5 @@ fn main() {
         process::exit(1);
     });
 
-    println!("Args: {:?}", system_args);
-    println!("Searching for {}", program_config.regex_query);
-    println!("In file: {}", program_config.filename);
-
     run_process(&program_config).unwrap_or_else(|error_flag| fsrep_failure(error_flag));
 }
