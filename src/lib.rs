@@ -4,6 +4,7 @@ use std::{
     process,
     fs,
 };
+use colored::*;
 
 pub struct Config<'a> {
     pub regex_query: &'a String,
@@ -31,6 +32,13 @@ pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
     let regex_query_results: Vec<&str> = search(&program_config.regex_query, &file_contents);
     print_results(&regex_query_results);
     Ok(())
+}
+
+struct Result {
+    configurations: Config,
+    line_number: u128,
+    column_number: u64,
+    line_contents: &str,
 }
 
 fn search<'a>(regex_query: &str, file_contents: &'a str) -> Vec<&'a str> {
