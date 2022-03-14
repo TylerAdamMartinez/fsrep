@@ -34,23 +34,10 @@ pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-struct Result {
-    configurations: Config,
-    line_number: u128,
-    column_number: u64,
-    line_contents: &str,
-}
-
 fn search<'a>(regex_query: &str, file_contents: &'a str) -> Vec<&'a str> {
-    let mut regex_query_results = Vec::<&str>::new();
-
-    for line in file_contents.lines() {
-        if line.contains(regex_query) {
-            regex_query_results.push(line);
-        }
-    }
-
-    regex_query_results
+    file_contents.lines()
+        .filter(|line| line.contains(regex_query))
+        .collect()
 }
 
 fn print_results(regex_query_results: &Vec<&str>) {
