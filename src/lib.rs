@@ -5,6 +5,7 @@ use std::{
     fs,
 };
 use colored::*;
+use regex::Regex;
 
 pub struct Config<'a> {
     pub regex_query: &'a String,
@@ -29,14 +30,20 @@ impl Config<'_> {
 
 pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
     let file_contents: String = fs::read_to_string(&program_config.filename)?;
-    let regex_query_results: Vec<&str> = search(&program_config.regex_query, &file_contents);
+    let regex_query_expression: Regex = create_regex_expression(&program_config.regex_query)?;
+    let regex_query_results: Vec<&str> = search(&regex_query_expression, &file_contents);
     print_results(&regex_query_results);
     Ok(())
 }
 
-fn search<'a>(regex_query: &str, file_contents: &'a str) -> Vec<&'a str> {
+fn create_regex_expression(regex_query: &str) -> Result<Regex, Box<dyn Error>> {
+    let regex_query_expression: Regex = Regex::new(regex_query)?;
+    Ok(regex_query_expression)
+}
+
+fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<&'a str> {
     file_contents.lines()
-        .filter(|line| line.contains(regex_query))
+        .filter(|line| regex_query_expression.is_match(line))
         .collect()
 }
 
