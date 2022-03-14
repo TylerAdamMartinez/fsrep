@@ -61,10 +61,23 @@ pub fn fsrep_failure(error_flag: impl Display) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    #[should_panic(expected = "assertion failed: `(left == right)`\n  left: `[\"Lorem\"]`,\n right: `[]`")]
+    fn search_not_founded() {
+        let query: &Regex = &create_regex_expression(&"Spider-Man").unwrap();
+        let contents: &str = "\
+            Lorem
+            search
+            and
+            destroy";
+
+        assert_eq!(vec!["Lorem"], search(&query, &contents));
+    }
+
 
     #[test]
     fn search_founded() {
-        let query: &str = "Lorem";
+        let query: &Regex = &create_regex_expression(&"Lorem").unwrap();
         let contents: &str = "\
             Lorem
             search
