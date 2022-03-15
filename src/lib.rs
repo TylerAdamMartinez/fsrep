@@ -4,7 +4,7 @@ use std::{
     process,
     fs,
 };
-//use colored::*;
+use colored::*;
 use regex::Regex;
 
 pub struct Config {
@@ -41,7 +41,7 @@ pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
         });
     let regex_query_expression: Regex = create_regex_expression(&program_config.regex_query)?;
     let regex_query_results: Vec<&str> = search(&regex_query_expression, &file_contents);
-    print_results(&regex_query_results);
+    print_results(&program_config.filename, &regex_query_results);
     Ok(())
 }
 
@@ -56,20 +56,23 @@ fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<&'a
         .collect()
 }
 
-fn print_results(regex_query_results: &Vec<&str>) {
+fn print_results(filename: &String, regex_query_results: &Vec<&str>) {
+    let fsrep_success_msg = "fsrep success".green().bold();
+    println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, regex_query_results.len().to_string().green().bold());
     for result in regex_query_results.iter() {
         println!("{}", result);
     }
 }
 
 pub fn fsrep_failure(error_flag: impl Display, additonal_info: Option<&str>) {
+    let fsrep_failure_msg = "fsrep failure".red().bold();
     match additonal_info {
         Some(additonal_info) => { 
-            eprintln!("fsrep failure: '{}' {}", additonal_info, error_flag);
+            eprintln!("{}: '{}' {}", fsrep_failure_msg, additonal_info, error_flag);
             process::exit(1);
         },
         None => {
-            eprintln!("fsrep failure: {}", error_flag);
+            eprintln!("{}: {}", fsrep_failure_msg, error_flag);
             process::exit(1);
         }
     }
