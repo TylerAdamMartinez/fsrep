@@ -4,7 +4,7 @@ use std::{
     process,
     fs,
 };
-use colored::*;
+//use colored::*;
 use regex::Regex;
 
 pub struct Config<'a> {
@@ -29,7 +29,11 @@ impl Config<'_> {
 }
 
 pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
-    let file_contents: String = fs::read_to_string(&program_config.filename)?;
+    let file_contents: String = fs::read_to_string(&program_config.filename)
+        .unwrap_or_else(|error_flag| {
+            fsrep_failure(error_flag, Some(&program_config.filename));
+            process::exit(1);
+        });
     let regex_query_expression: Regex = create_regex_expression(&program_config.regex_query)?;
     let regex_query_results: Vec<&str> = search(&regex_query_expression, &file_contents);
     print_results(&regex_query_results);
@@ -53,9 +57,17 @@ fn print_results(regex_query_results: &Vec<&str>) {
     }
 }
 
-pub fn fsrep_failure(error_flag: impl Display) {
-        println!("fsrep failure: {}", error_flag);
-        process::exit(1);
+pub fn fsrep_failure(error_flag: impl Display, additonal_info: Option<&str>) {
+    match additonal_info {
+        Some(additonal_info) => { 
+            println!("fsrep failure: '{}' {}", additonal_info, error_flag);
+            process::exit(1);
+        },
+        None => {
+            println!("fsrep failure: {}", error_flag);
+            process::exit(1);
+        }
+    }
 }
 
 #[cfg(test)]
