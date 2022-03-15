@@ -7,19 +7,24 @@ use std::{
 //use colored::*;
 use regex::Regex;
 
-pub struct Config<'a> {
-    pub regex_query: &'a String,
-    pub filename: &'a String,
+pub struct Config {
+    pub regex_query: String,
+    pub filename: String,
 }
 
-impl Config<'_> {
-    pub fn new(system_args: &[String]) -> Result<Config, &'static str> {
-        if system_args.len() < 3 {
-            return Err("insufficient amount of passed arguments");
-        }
+impl Config {
+    pub fn new(mut system_args: std::env::Args) -> Result<Config, &'static str> {
+        system_args.next();
 
-        let regex_query: &String = &system_args[1];
-        let filename: &String = &system_args[2];
+        let regex_query: String = match system_args.next() {
+            Some(regex_query) => regex_query,
+            None => return Err("insufficient amount of passed arguments: needs a query string"),
+        };
+
+        let filename: String = match system_args.next() {
+            Some(filename) => filename,
+            None => return Err("insufficient amount of passed arguments: needs at least one file argument"),
+        };
 
         Ok(Config {
             regex_query,
@@ -60,11 +65,11 @@ fn print_results(regex_query_results: &Vec<&str>) {
 pub fn fsrep_failure(error_flag: impl Display, additonal_info: Option<&str>) {
     match additonal_info {
         Some(additonal_info) => { 
-            println!("fsrep failure: '{}' {}", additonal_info, error_flag);
+            eprintln!("fsrep failure: '{}' {}", additonal_info, error_flag);
             process::exit(1);
         },
         None => {
-            println!("fsrep failure: {}", error_flag);
+            eprintln!("fsrep failure: {}", error_flag);
             process::exit(1);
         }
     }
