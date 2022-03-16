@@ -55,7 +55,7 @@ pub fn run_process(program_config: &'static Config) -> Result<(), Box<dyn Error 
                     fsrep_failure(error_flag, Some(&filename));
                     process::exit(1);
                 });
-            let regex_query_results: Vec<&str> = search(&regex_query_expression_clone, &file_contents);
+            let regex_query_results: Vec<SearchResults> = search(&regex_query_expression_clone, &file_contents);
             print_results(&filename, &regex_query_results);
         });
         thread_join_handler.push(new_join_handle);
@@ -73,17 +73,29 @@ fn create_regex_expression(regex_query: &str) -> Result<Regex, Box<dyn Error>> {
     Ok(regex_query_expression)
 }
 
-fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<&'a str> {
+struct SearchResults<'a> {
+    line_number: u128,
+    line_content: &'a str,
+}
+
+fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<SearchResults<'a>> {
+    let mut line_number: u128 = 0;
     file_contents.lines()
-        .filter(|line| regex_query_expression.is_match(line))
+        .map(|line_content| {
+            line_number += 1;
+            SearchResults {
+                line_number,
+                line_content, 
+        }})
+        .filter(|search_result| regex_query_expression.is_match(search_result.line_content))
         .collect()
 }
 
-fn print_results(filename: &String, regex_query_results: &Vec<&str>) {
+fn print_results(filename: &String, regex_query_results: &Vec<SearchResults>) {
     let fsrep_success_msg = "fsrep success".green().bold();
     println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, regex_query_results.len().to_string().green().bold());
     for result in regex_query_results.iter() {
-        println!("{}", result);
+        println!("{}: {}", result.line_number, result.line_content);
     }
 }
 
