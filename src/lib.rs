@@ -2,6 +2,8 @@ use std::{
     error::Error,
     fmt::Display,
     process,
+    thread,
+    thread::JoinHandle,
     fs,
 };
 use colored::*;
@@ -9,7 +11,7 @@ use regex::Regex;
 
 pub struct Config {
     pub regex_query: String,
-    pub filename: String,
+    pub filenames: Vec<String>,
 }
 
 impl Config {
@@ -21,27 +23,52 @@ impl Config {
             None => return Err("insufficient amount of passed arguments: needs a query string"),
         };
 
-        let filename: String = match system_args.next() {
-            Some(filename) => filename,
+        let mut filenames: Vec<String> = Vec::<String>::new();
+        match system_args.next() {
+            Some(filename) => filenames.push(filename),
             None => return Err("insufficient amount of passed arguments: needs at least one file argument"),
         };
 
+        loop {
+            match system_args.next() {
+                Some(filename) => filenames.push(filename),
+                None => break,
+            }
+        }
+
         Ok(Config {
             regex_query,
-            filename
+            filenames
         })
     }
 }
 
-pub fn run_process(program_config: &Config) -> Result<(), Box<dyn Error>> {
-    let file_contents: String = fs::read_to_string(&program_config.filename)
-        .unwrap_or_else(|error_flag| {
-            fsrep_failure(error_flag, Some(&program_config.filename));
-            process::exit(1);
-        });
+pub fn run_process(program_config: &'static Config) -> Result<(), Box<dyn Error + 'static>> {
     let regex_query_expression: Regex = create_regex_expression(&program_config.regex_query)?;
-    let regex_query_results: Vec<&str> = search(&regex_query_expression, &file_contents);
-    print_results(&program_config.filename, &regex_query_results);
+    let mut thread_join_handler: Vec<JoinHandle<_>> = Vec::<JoinHandle<_>>::new();
+
+    for filename in program_config.filenames.iter() {
+        let regex_query_expression_clone = regex_query_expression.clone();
+        let new_join_handle = thread::spawn(move || {
+            let file_contents: String = fs::read_to_string(&filename)
+                .unwrap_or_else(|error_flag| {
+                    fsrep_failure(error_flag, Some(&filename));
+                    process::exit(1);
+                });
+            let regex_query_results: Vec<&str> = search(&regex_query_expression_clone, &file_contents);
+            print_results(&filename, &regex_query_results);
+        });
+        thread_join_handler.push(new_join_handle);
+    }
+
+    let fsrep_failure_msg: ColoredString = "fsrep failure".red().bold();
+    let thread_panic_msg: &str = ": thread panic";
+    let thread_error_msg: String = format!("{}{}", fsrep_failure_msg, thread_panic_msg);
+
+    for thread_join_handle in thread_join_handler {
+        thread_join_handle.join()
+            .expect(&thread_error_msg);
+    }
     Ok(())
 }
 
