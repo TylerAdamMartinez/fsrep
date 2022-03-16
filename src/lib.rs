@@ -61,13 +61,9 @@ pub fn run_process(program_config: &'static Config) -> Result<(), Box<dyn Error 
         thread_join_handler.push(new_join_handle);
     }
 
-    let fsrep_failure_msg: ColoredString = "fsrep failure".red().bold();
-    let thread_panic_msg: &str = ": thread panic";
-    let thread_error_msg: String = format!("{}{}", fsrep_failure_msg, thread_panic_msg);
-
     for thread_join_handle in thread_join_handler {
         thread_join_handle.join()
-            .expect(&thread_error_msg);
+            .expect(&format!("{}{}", "fsrep failure".red().bold(), ": thread panic"));
     }
     Ok(())
 }
