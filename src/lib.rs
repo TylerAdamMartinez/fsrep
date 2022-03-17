@@ -72,6 +72,7 @@ fn create_regex_expression(regex_query: &str) -> Result<Regex, Box<dyn Error>> {
     Ok(regex_query_expression)
 }
 
+#[derive(Debug, PartialEq)]
 struct SearchResults<'a> {
     line_number: u128,
     line_content: &'a str,
@@ -117,7 +118,7 @@ pub fn fsrep_failure(error_flag: impl Display, additonal_info: Option<&str>) {
 mod tests {
     use super::*;
     #[test]
-    #[should_panic(expected = "assertion failed: `(left == right)`\n  left: `[\"Lorem\"]`,\n right: `[]`")]
+    #[should_panic(expected = "assertion failed: `(left == right)`\n  left: `[SearchResults { line_number: 1, line_content: \"Lorem\" }]`,\n right: `[]`")]
     fn search_not_founded() {
         let query: &Regex = &create_regex_expression(&"Spider-Man").unwrap();
         let contents: &str = "\
@@ -126,7 +127,7 @@ mod tests {
             and
             destroy";
 
-        assert_eq!(vec!["Lorem"], search(&query, &contents));
+        assert_eq!(vec![SearchResults{ line_number: 1, line_content: "Lorem" }], search(&query, &contents));
     }
 
 
@@ -139,6 +140,6 @@ mod tests {
             and
             destroy";
 
-        assert_eq!(vec!["Lorem"], search(&query, &contents));
+        assert_eq!(vec![SearchResults{ line_number: 1, line_content: "Lorem" }], search(&query, &contents));
     }
 }
