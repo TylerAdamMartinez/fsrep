@@ -43,13 +43,13 @@ impl Config {
     }
 }
 
-pub fn run_process(program_config: &'static Config) -> Result<(), Box<dyn Error + 'static>> {
+pub fn run_process(program_config: Config) -> Result<(), Box<dyn Error + 'static>> {
     let regex_query_expression: Regex = create_regex_expression(&program_config.regex_query)?;
     let mut thread_join_handler: Vec<JoinHandle<_>> = Vec::<JoinHandle<_>>::new();
 
-    for filename in program_config.filenames.iter() {
+    for filename in program_config.filenames.into_iter() {
         let regex_query_expression_clone = regex_query_expression.clone();
-        let new_join_handle = thread::spawn(move || {
+        thread_join_handler.push(thread::spawn(move || {
             let file_contents: String = fs::read_to_string(&filename)
                 .unwrap_or_else(|error_flag| {
                     fsrep_failure(error_flag, Some(&filename));
@@ -57,8 +57,7 @@ pub fn run_process(program_config: &'static Config) -> Result<(), Box<dyn Error 
                 });
             let regex_query_results: Vec<SearchResults> = search(&regex_query_expression_clone, &file_contents);
             print_results(&filename, &regex_query_results);
-        });
-        thread_join_handler.push(new_join_handle);
+        }));
     }
 
     for thread_join_handle in thread_join_handler {
@@ -86,7 +85,8 @@ fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<Sea
             SearchResults {
                 line_number,
                 line_content, 
-        }})
+            }
+        })
         .filter(|search_result| regex_query_expression.is_match(search_result.line_content))
         .collect()
 }

@@ -10,5 +10,5 @@ fn main() {
         std::process::exit(1);
     });
 
-    run_process(&program_config).unwrap_or_else(|error_flag| fsrep_failure(error_flag, None));
+    run_process(program_config).unwrap_or_else(|error_flag| fsrep_failure(error_flag, None));
 }
