@@ -94,7 +94,8 @@ fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<Sea
 
 fn print_results(filename: &String, regex_query_results: &Vec<SearchResults>) {
     let fsrep_success_msg = "fsrep success".green().bold();
-    println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, regex_query_results.len().to_string().green().bold());
+    let number_query_of_results = regex_query_results.len().to_string().green().bold();
+    println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, number_query_of_results);
     for result in regex_query_results.iter() {
         println!("{}: {}", result.line_number, result.line_content);
     }
@@ -118,28 +119,46 @@ pub fn fsrep_failure(error_flag: impl Display, additonal_info: Option<&str>) {
 mod tests {
     use super::*;
     #[test]
-    #[should_panic(expected = "assertion failed: `(left == right)`\n  left: `[SearchResults { line_number: 1, line_content: \"Lorem\" }]`,\n right: `[]`")]
-    fn search_not_founded() {
-        let query: &Regex = &create_regex_expression(&"Spider-Man").unwrap();
+    #[should_panic(expected = "assertion failed: `(left == right)`\n  left: `[SearchResults { line_number: 16, line_content: \"Black\" }]`,\n right: `[]`")]
+    fn search_not_found() {
+        let query: &Regex = &create_regex_expression(&"Black").unwrap();
         let contents: &str = "\
-            Lorem
-            search
-            and
-            destroy";
+            Itachi
+            Madara
+            Obito
+            Pain
+            Orochimaru
+            Shin
+            Konan
+            Kakuzu
+            Kisame
+            Deidara
+            Sasori
+            Hidan
+            Yahiko";
 
-        assert_eq!(vec![SearchResults{ line_number: 1, line_content: "Lorem" }], search(&query, &contents));
+        assert_eq!(vec![SearchResults{ line_number: 16, line_content: "Black" }], search(&query, &contents));
     }
 
 
     #[test]
-    fn search_founded() {
-        let query: &Regex = &create_regex_expression(&"Lorem").unwrap();
+    fn search_found() {
+        let query: &Regex = &create_regex_expression(&"Orochimaru").unwrap();
         let contents: &str = "\
-            Lorem
-            search
-            and
-            destroy";
+            Itachi
+            Madara
+            Obito
+            Pain
+            Orochimaru
+            Shin
+            Konan
+            Kakuzu
+            Kisame
+            Deidara
+            Sasori
+            Hidan
+            Yahiko";
 
-        assert_eq!(vec![SearchResults{ line_number: 1, line_content: "Lorem" }], search(&query, &contents));
+        assert_eq!(vec![SearchResults{ line_number: 5, line_content: "            Orochimaru" }], search(&query, &contents));
     }
 }
