@@ -1,3 +1,7 @@
+//! #fsrep
+//!
+//! `fsrep` is a command line tool. A grep like alternative written in rust
+
 use std::{
     error::Error,
     fmt::Display,

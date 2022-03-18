@@ -2,7 +2,7 @@
 name = "fsrep"
 version = "0.2.0"
 authors = ["Tyler Adam Martinez <TylerAdamMartinez@outlook.com>"]
-description = "A grep alternative written in rust"
+description = "`fsrep` is a command line tool. A grep like alternative written in rust"
 license = "GPL-2.0-only"
 edition = "2021"
 
