@@ -59,8 +59,8 @@ pub fn run_process(program_config: Config) -> Result<(), Box<dyn Error + 'static
                     fsrep_failure(error_flag, Some(&filename));
                     process::exit(1);
                 });
-            let regex_query_results: Vec<SearchResults> = search(&regex_query_expression_clone, &file_contents);
-            print_results(&filename, &regex_query_results);
+            let regex_query_results: Vec<SearchResults> = search(&regex_query_expression_clone, file_contents);
+            print_results(&filename, &regex_query_expression_clone, &regex_query_results);
         }));
     }
 
@@ -77,31 +77,38 @@ fn create_regex_expression(regex_query: &str) -> Result<Regex, Box<dyn Error>> {
 }
 
 #[derive(Debug, PartialEq)]
-struct SearchResults<'a> {
+struct SearchResults {
     line_number: u128,
-    line_content: &'a str,
+    line_content: String,
 }
 
-fn search<'a>(regex_query_expression: &Regex, file_contents: &'a str) -> Vec<SearchResults<'a>> {
+fn search<'a>(regex_query_expression: &Regex, file_contents: String) -> Vec<SearchResults> {
     let mut line_number: u128 = 0;
     file_contents.lines()
         .map(|line_content| {
             line_number += 1;
             SearchResults {
                 line_number,
-                line_content, 
+                line_content: line_content.to_string(),
             }
         })
-        .filter(|search_result| regex_query_expression.is_match(search_result.line_content))
+        .filter(|search_result| regex_query_expression.is_match(&search_result.line_content))
         .collect()
 }
 
-fn print_results(filename: &String, regex_query_results: &Vec<SearchResults>) {
+fn print_results(filename: &String, regex_query_expression: &Regex, regex_query_results: &Vec<SearchResults>) {
     let fsrep_success_msg = "fsrep success".green().bold();
     let number_query_of_results = regex_query_results.len().to_string().green().bold();
     println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, number_query_of_results);
+
     for result in regex_query_results.iter() {
-        println!("{}: {}", result.line_number.to_string().cyan().bold(), result.line_content);
+        let query_match = regex_query_expression.find(&result.line_content).unwrap();
+        let begin = &result.line_content[0..query_match.start()];
+        let end = &result.line_content[query_match.end()..];
+        let color_match = &result.line_content[query_match.start()..query_match.end()].green().bold();
+        let colorised_result_line_content = format!("{}{}{}", &begin, &color_match, &end);
+
+        println!("{}: {}", result.line_number.to_string().cyan().bold(), colorised_result_line_content);
     }
 }
 
