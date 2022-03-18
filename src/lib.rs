@@ -97,7 +97,7 @@ fn print_results(filename: &String, regex_query_results: &Vec<SearchResults>) {
     let number_query_of_results = regex_query_results.len().to_string().green().bold();
     println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, number_query_of_results);
     for result in regex_query_results.iter() {
-        println!("{}: {}", result.line_number.to_string().cyan(), result.line_content);
+        println!("{}: {}", result.line_number.to_string().cyan().bold(), result.line_content);
     }
 }
 
