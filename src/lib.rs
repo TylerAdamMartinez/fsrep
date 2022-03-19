@@ -102,13 +102,29 @@ fn print_results(filename: &String, regex_query_expression: &Regex, regex_query_
     println!("{}: In file: '{}' {} matches found", fsrep_success_msg, filename, number_query_of_results);
 
     for result in regex_query_results.iter() {
-        let query_match = regex_query_expression.find(&result.line_content).unwrap();
-        let begin = &result.line_content[0..query_match.start()];
-        let end = &result.line_content[query_match.end()..];
-        let color_match = &result.line_content[query_match.start()..query_match.end()].green().bold();
-        let colorised_result_line_content = format!("{}{}{}", &begin, &color_match, &end);
-
+        let colorised_result_line_content = highlight_regex_result(&regex_query_expression, &result.line_content);
         println!("{}: {}", result.line_number.to_string().cyan().bold(), colorised_result_line_content);
+    }
+}
+
+fn highlight_regex_result(regex_query_expression: &Regex, line_content: &String) -> String {
+    let query_match = regex_query_expression.find(&line_content).unwrap();
+
+    if query_match.start() == 0 {
+        let color_match = &line_content[query_match.start()..query_match.end()].green().bold();
+        let end = &line_content[query_match.end()..];
+        return format!("{}{}", &color_match, &end);
+    }
+    else if query_match.end() == line_content.len() {
+        let begin = &line_content[0..query_match.start()];
+        let color_match = &line_content[query_match.start()..query_match.end()].green().bold();
+        return format!("{}{}", &begin, &color_match);
+    }
+    else {
+        let begin = &line_content[0..query_match.start()];
+        let end = &line_content[query_match.end()..];
+        let color_match = &line_content[query_match.start()..query_match.end()].green().bold();
+        return format!("{}{}{}", &begin, &color_match, &end);
     }
 }
 
