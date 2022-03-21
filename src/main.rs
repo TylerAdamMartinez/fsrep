@@ -1,8 +1,4 @@
-use fsrep::{
-    Config,
-    fsrep_failure,
-    run_process,
-};
+use fsrep::{fsrep_failure, run_process, Config};
 
 fn main() {
     let program_config = Config::new(std::env::args()).unwrap_or_else(|error_flag| {
